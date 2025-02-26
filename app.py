@@ -11,7 +11,14 @@ import os
 import subprocess
 import sys
 import pywt
-import cv2
+
+# Vérifier si OpenCV est installé
+try:
+    import cv2
+    OPENCV_AVAILABLE = True
+except ImportError:
+    OPENCV_AVAILABLE = False
+    print("⚠️ OpenCV (cv2) n'est pas installé. La détection du bruit ne fonctionnera pas.")
 
 # Charger le modèle entraîné
 MODEL_PATH = "./model/classification_vetements_model.h5"
@@ -20,8 +27,10 @@ model = load_model(MODEL_PATH)
 # Classes du modèle
 class_labels = ["dress", "hat", "longsleeve", "outwear", "pants", "shirts", "shoes", "shorts", "skirt", "t-shirt"]
 
-# 📌 Fonction pour détecter si une image est bruitée
+# 📌 Fonction pour détecter si une image est bruitée (nécessite OpenCV)
 def needs_denoising(image, threshold=10.0):
+    if not OPENCV_AVAILABLE:
+        return False  # Si OpenCV n'est pas disponible, ne pas appliquer le filtrage
     img_gray = np.array(image.convert('L'))
     laplacian_var = cv2.Laplacian(img_gray, cv2.CV_64F).var()
     return laplacian_var < threshold  # Si la variance est basse, l'image est considérée comme bruitée
@@ -88,9 +97,11 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file)
     st.image(image, caption="Image téléchargée", use_container_width=True)
 
-    # Détection du bruit
-    if needs_denoising(image):
+    # Détection du bruit si OpenCV est disponible
+    if OPENCV_AVAILABLE and needs_denoising(image):
         st.write("⚠️ L'image semble bruitée. Application du filtrage par ondelettes.")
+    elif not OPENCV_AVAILABLE:
+        st.write("⚠️ OpenCV n'est pas installé. Impossible de détecter le bruit.")
     else:
         st.write("✅ L'image est propre, aucun filtrage nécessaire.")
 
