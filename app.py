@@ -8,8 +8,6 @@ from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 import matplotlib.pyplot as plt
 from PIL import Image, ImageFilter
 import os
-import subprocess
-import sys
 import pywt
 
 # Vérifier si OpenCV est installé
