@@ -5,6 +5,5 @@ pandas
 pillow
 matplotlib
 PyWavelets
-opencv-python
-cv2
+opencv-python-headless
 subprocess
