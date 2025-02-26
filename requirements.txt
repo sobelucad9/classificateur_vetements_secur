@@ -6,3 +6,4 @@ pillow
 matplotlib
 PyWavelets
 opencv-python
+cv2
