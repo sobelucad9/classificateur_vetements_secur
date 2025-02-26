@@ -7,3 +7,4 @@ matplotlib
 PyWavelets
 opencv-python
 cv2
+subprocess
