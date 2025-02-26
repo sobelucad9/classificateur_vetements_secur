@@ -19,12 +19,13 @@ model = load_model(MODEL_PATH)
 # Classes du modèle
 class_labels = ["dress", "hat", "longsleeve", "outwear", "pants", "shirts", "shoes", "shorts", "skirt", "t-shirt"]
 
-# 📌 Fonction de filtrage par ondelettes
-def wavelet_denoise(image):
+# 📌 Fonction de filtrage par ondelettes (atténuation plutôt que suppression)
+def wavelet_denoise(image, attenuation_factor=0.5):
     img_gray = image.convert('L')  # Convertir en niveaux de gris
     img_array = np.array(img_gray, dtype=np.float32) / 255.0
     coeffs = pywt.wavedec2(img_array, 'haar', level=1)
-    coeffs[0] *= 0  # Supprimer les détails haute fréquence
+    coeffs = list(coeffs)
+    coeffs[0] *= attenuation_factor  # Réduction des hautes fréquences au lieu de suppression
     img_denoised = pywt.waverec2(coeffs, 'haar')
     img_denoised = np.clip(img_denoised * 255.0, 0, 255).astype(np.uint8)
     return Image.fromarray(img_denoised)
@@ -32,10 +33,11 @@ def wavelet_denoise(image):
 # 📌 Fonction de prétraitement avec filtrage par ondelettes
 def preprocess_image(image, use_filters=True):
     if use_filters:
-        image = wavelet_denoise(image)  # Appliquer la transformée en ondelettes
+        image = wavelet_denoise(image, attenuation_factor=0.5)  # Appliquer la transformée en ondelettes avec atténuation
     image = image.resize((128, 128))  # Redimensionner pour MobileNetV2
     image = image.convert("RGB")  # Assurer 3 canaux (RVB)
-    img_array = np.array(image) / 255.0  # Normalisation [0,1]
+    img_array = img_to_array(image)
+    img_array = preprocess_input(img_array)  # Appliquer le prétraitement MobileNetV2
     img_array = img_array.reshape(1, 128, 128, 3)  # Adapter aux dimensions attendues
     return img_array
 
