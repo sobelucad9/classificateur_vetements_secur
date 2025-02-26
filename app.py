@@ -19,7 +19,7 @@ except ImportError:
     print("⚠️ OpenCV (cv2) n'est pas installé. La détection du bruit ne fonctionnera pas.")
 
 # Charger le modèle entraîné
-MODEL_PATH = "./model/classification_vetements_model.h5"
+MODEL_PATH = "/model/classification_vetements_model.h5"
 model = load_model(MODEL_PATH)
 
 # 📌 Forcer la compilation du modèle après le chargement pour éviter les erreurs TensorFlow
