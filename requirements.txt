@@ -1,8 +1,8 @@
 streamlit
 tensorflow
-numpy
+numpy==1.23.5
 pandas
 pillow
 matplotlib
 PyWavelets
-opencv-python-headless==4.5.5.62
+opencv-python-headless==4.7.0.72

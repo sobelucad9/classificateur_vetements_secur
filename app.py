@@ -22,6 +22,9 @@ except ImportError:
 MODEL_PATH = "./model/classification_vetements_model.h5"
 model = load_model(MODEL_PATH)
 
+# 📌 Forcer la compilation du modèle après le chargement pour éviter les erreurs TensorFlow
+model.compile()
+
 # Classes du modèle
 class_labels = ["dress", "hat", "longsleeve", "outwear", "pants", "shirts", "shoes", "shorts", "skirt", "t-shirt"]
 
