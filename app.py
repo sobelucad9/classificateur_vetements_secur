@@ -91,6 +91,7 @@ def predict_image(image, use_filters=True):
 st.set_page_config(page_title="👕🧢 Classificateur de Vêtements", layout="centered")
 
 st.title("👕🧢 Classificateur de vêtements sécurisé avec filtrage par ondelettes adaptatif")
+st.write("Pour une meilleure prédiction, assurez-vous que le vêtement présent sur la photo est bien étalé.")
 st.write("""
 Téléchargez une image pour la classer.
 
