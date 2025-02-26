@@ -7,7 +7,14 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 import matplotlib.pyplot as plt
 from PIL import Image, ImageFilter
-import pywt
+import os
+
+# Vérifier et installer PyWavelets si nécessaire
+try:
+    import pywt
+except ImportError:
+    os.system("pip install PyWavelets")
+    import pywt
 
 # Charger le modèle entraîné
 MODEL_PATH = "./model/classification_vetements_model.h5"
