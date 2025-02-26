@@ -18,15 +18,31 @@ except ImportError:
     OPENCV_AVAILABLE = False
     print("⚠️ OpenCV (cv2) n'est pas installé. La détection du bruit ne fonctionnera pas.")
 
-# Charger le modèle entraîné
+# Vérifier si le fichier du modèle existe
 MODEL_PATH = "./model/classification_vetements_model.h5"
+if not os.path.exists(MODEL_PATH):
+    st.error(f"❌ Le fichier du modèle '{MODEL_PATH}' est introuvable. Assurez-vous qu'il est correctement placé.")
+    st.stop()
+
+# Charger le modèle entraîné
 model = load_model(MODEL_PATH)
 
 # 📌 Forcer la compilation du modèle après le chargement pour éviter les erreurs TensorFlow
 model.compile()
 
-# Classes du modèle
-class_labels = ["dress", "hat", "longsleeve", "outwear", "pants", "shirts", "shoes", "shorts", "skirt", "t-shirt"]
+# Mapping des classes en français
+class_labels = {
+    "dress": "Robe",
+    "hat": "Casquette",
+    "longsleeve": "Manches longues",
+    "outwear": "Vêtements d'extérieur",
+    "pants": "Pantalon",
+    "shirts": "Chemise",
+    "shoes": "Chaussures",
+    "shorts": "Short",
+    "skirt": "Jupe",
+    "t-shirt": "T-shirt"
+}
 
 # 📌 Fonction pour détecter si une image est bruitée (nécessite OpenCV)
 def needs_denoising(image, threshold=10.0):
@@ -62,13 +78,14 @@ def preprocess_image(image, use_filters=True):
 def predict_image(image, use_filters=True):
     img_array = preprocess_image(image, use_filters)  # Prétraitement avec ou sans filtrage par ondelettes
     pred = model.predict(img_array)  # Prédiction
-    predicted_class = class_labels[np.argmax(pred)]  # Classe prédite
+    predicted_class = max(class_labels, key=lambda k: pred[0][list(class_labels.keys()).index(k)])
+    predicted_class_fr = class_labels[predicted_class]  # Traduction en français
     confidence = np.max(pred)  # Probabilité de la meilleure prédiction
 
     # Résultats sous forme de DataFrame
-    results_df = pd.DataFrame({'Classe': class_labels, 'Probabilité': pred.flatten()}).sort_values(by='Probabilité', ascending=False)
+    results_df = pd.DataFrame({'Classe': [class_labels[k] for k in class_labels], 'Probabilité': pred.flatten()}).sort_values(by='Probabilité', ascending=False)
 
-    return predicted_class, confidence, results_df
+    return predicted_class_fr, confidence, results_df
 
 # Interface Streamlit
 st.set_page_config(page_title="👕🧢 Classificateur de Vêtements", layout="centered")
@@ -78,16 +95,16 @@ st.write("""
 Téléchargez une image pour la classer.
 
 **Catégories disponibles :**
-- 👗 Dress -> Robe
-- 🧢 Hat -> Casquette
-- 👕 Longsleeve -> Manches longues
-- 🧥 Outwear -> Vêtements d'extérieur
-- 👖 Pant -> Pantalon
-- 👔 Shirt -> Chemise
-- 👟 Shoes -> Chaussures
-- 🩳 Short -> Short
-- 👚 Skirt -> Jupe
-- 👕 T-shirt -> T-shirt
+- 👗 Robe
+- 🧢 Casquette
+- 👕 Manches longues
+- 🧥 Vêtements d'extérieur
+- 👖 Pantalon
+- 👔 Chemise
+- 👟 Chaussures
+- 🩳 Short
+- 👚 Jupe
+- 👕 T-shirt
 """)
 
 uploaded_file = st.file_uploader("Choisissez une image...", type=["jpg", "png", "jpeg"])
@@ -108,13 +125,13 @@ if uploaded_file is not None:
         st.write("✅ L'image est propre, aucun filtrage nécessaire.")
 
     # Prédiction avec ou sans filtrage par ondelettes
-    predicted_class, confidence, results_df = predict_image(image, use_filters)
+    predicted_class_fr, confidence, results_df = predict_image(image, use_filters)
 
     # Vérification du niveau de confiance
     if confidence <= 0.5:
-        st.subheader(f"🤔 La classification n'est pas sûre. Il se pourrait que l'image soit un(e) **{predicted_class}**, mais la confiance est faible ({confidence:.2f}).")
+        st.subheader(f"🤔 La classification n'est pas sûre. Il se pourrait que l'image soit un(e) **{predicted_class_fr}**, mais la confiance est faible ({confidence:.2f}).")
     else:
-        st.subheader(f"🛍️ Classe prédite : **{predicted_class}** (Confiance : {confidence:.2f})")
+        st.subheader(f"🛍️ Classe prédite : **{predicted_class_fr}** (Confiance : {confidence:.2f})")
 
     # Afficher les probabilités sous forme de tableau
     st.write("### 🔍 Résultat détaillé de la classification :")
