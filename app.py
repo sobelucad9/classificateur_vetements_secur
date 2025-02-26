@@ -53,7 +53,7 @@ def predict_image(image, use_filters=True):
 # Interface Streamlit
 st.set_page_config(page_title="👕🧢 Classificateur de Vêtements", layout="centered")
 
-st.title("👕🧢 Classificateur de vêtements sécurisé avec filtrage par ondelettes pour les images. *jfsg*"")
+st.title("👕🧢 Classificateur de vêtements sécurisé avec filtrage par ondelettes pour les images. *jfsg*")
 st.write("""
 Téléchargez une image pour la classer.
 
