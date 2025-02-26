@@ -8,12 +8,17 @@ from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 import matplotlib.pyplot as plt
 from PIL import Image, ImageFilter
 import os
+import subprocess
+import sys
 
 # Vérifier et installer PyWavelets si nécessaire
+def install_package(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
 try:
     import pywt
 except ImportError:
-    os.system("pip install PyWavelets")
+    install_package("PyWavelets")
     import pywt
 
 # Charger le modèle entraîné
