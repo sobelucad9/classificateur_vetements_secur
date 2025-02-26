@@ -63,11 +63,12 @@ def predict_image(image, use_filters=True):
     img_array = preprocess_image(image, use_filters)  # Prétraitement avec ou sans filtrage par ondelettes
     pred = model.predict(img_array)  # Prédiction
     predicted_class = class_labels[np.argmax(pred)]  # Classe prédite
+    confidence = np.max(pred)  # Probabilité de la meilleure prédiction
 
     # Résultats sous forme de DataFrame
     results_df = pd.DataFrame({'Classe': class_labels, 'Probabilité': pred.flatten()}).sort_values(by='Probabilité', ascending=False)
 
-    return predicted_class, results_df
+    return predicted_class, confidence, results_df
 
 # Interface Streamlit
 st.set_page_config(page_title="👕🧢 Classificateur de Vêtements", layout="centered")
@@ -107,10 +108,13 @@ if uploaded_file is not None:
         st.write("✅ L'image est propre, aucun filtrage nécessaire.")
 
     # Prédiction avec ou sans filtrage par ondelettes
-    predicted_class, results_df = predict_image(image, use_filters)
+    predicted_class, confidence, results_df = predict_image(image, use_filters)
 
-    # Affichage du résultat
-    st.subheader(f"🛍️ Classe prédite : **{predicted_class}**")
+    # Vérification du niveau de confiance
+    if confidence <= 0.5:
+        st.subheader(f"🤔 La classification n'est pas sûre. Il se pourrait que l'image soit un(e) **{predicted_class}**, mais la confiance est faible ({confidence:.2f}).")
+    else:
+        st.subheader(f"🛍️ Classe prédite : **{predicted_class}** (Confiance : {confidence:.2f})")
 
     # Afficher les probabilités sous forme de tableau
     st.write("### 🔍 Résultat détaillé de la classification :")
