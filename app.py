@@ -11,6 +11,7 @@ import os
 import subprocess
 import sys
 import pywt
+import cv2
 
 # Charger le modèle entraîné
 MODEL_PATH = "./model/classification_vetements_model.h5"
@@ -18,6 +19,12 @@ model = load_model(MODEL_PATH)
 
 # Classes du modèle
 class_labels = ["dress", "hat", "longsleeve", "outwear", "pants", "shirts", "shoes", "shorts", "skirt", "t-shirt"]
+
+# 📌 Fonction pour détecter si une image est bruitée
+def needs_denoising(image, threshold=10.0):
+    img_gray = np.array(image.convert('L'))
+    laplacian_var = cv2.Laplacian(img_gray, cv2.CV_64F).var()
+    return laplacian_var < threshold  # Si la variance est basse, l'image est considérée comme bruitée
 
 # 📌 Fonction de filtrage par ondelettes (atténuation plutôt que suppression)
 def wavelet_denoise(image, attenuation_factor=0.5):
@@ -32,7 +39,7 @@ def wavelet_denoise(image, attenuation_factor=0.5):
 
 # 📌 Fonction de prétraitement avec filtrage par ondelettes
 def preprocess_image(image, use_filters=True):
-    if use_filters:
+    if use_filters and needs_denoising(image):
         image = wavelet_denoise(image, attenuation_factor=0.5)  # Appliquer la transformée en ondelettes avec atténuation
     image = image.resize((128, 128))  # Redimensionner pour MobileNetV2
     image = image.convert("RGB")  # Assurer 3 canaux (RVB)
@@ -55,7 +62,7 @@ def predict_image(image, use_filters=True):
 # Interface Streamlit
 st.set_page_config(page_title="👕🧢 Classificateur de Vêtements", layout="centered")
 
-st.title("👕🧢 Classificateur de vêtements sécurisé avec filtrage par ondelettes pour les images. *jfsg*")
+st.title("👕🧢 Classificateur de vêtements sécurisé avec filtrage par ondelettes adaptatif")
 st.write("""
 Téléchargez une image pour la classer.
 
@@ -74,12 +81,18 @@ Téléchargez une image pour la classer.
 
 uploaded_file = st.file_uploader("Choisissez une image...", type=["jpg", "png", "jpeg"])
 
-use_filters = st.checkbox("Utiliser le filtrage par ondelettes pour réduire le bruit", value=True)
+use_filters = st.checkbox("Activer le filtrage par ondelettes en cas de bruit détecté", value=True)
 
 if uploaded_file is not None:
     # Charger l'image
     image = Image.open(uploaded_file)
     st.image(image, caption="Image téléchargée", use_container_width=True)
+
+    # Détection du bruit
+    if needs_denoising(image):
+        st.write("⚠️ L'image semble bruitée. Application du filtrage par ondelettes.")
+    else:
+        st.write("✅ L'image est propre, aucun filtrage nécessaire.")
 
     # Prédiction avec ou sans filtrage par ondelettes
     predicted_class, results_df = predict_image(image, use_filters)

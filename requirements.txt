@@ -5,3 +5,4 @@ pandas
 pillow
 matplotlib
 PyWavelets
+opencv-python
